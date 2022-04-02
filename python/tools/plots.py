@@ -69,7 +69,7 @@ def mark(fig,index=False) :
     else : return _x, _y, _button
 
 
-def plotc(ax,x,y,z,yerr=None,xr=None,yr=None,zr=None,size=5,cmap='rainbow',colorbar=False,xt=None,yt=None,zt=None,label=None,linewidth=0,marker='o',draw=True,orientation='vertical',labelcolor='k',tit=None,nxtick=None,nytick=None,rasterized=None,alpha=None) :
+def plotc(ax,x,y,z,xerr=None,yerr=None,xr=None,yr=None,zr=None,size=5,cmap='rainbow',colorbar=False,xt=None,yt=None,zt=None,label=None,linewidth=0,edgecolor=None,marker='o',draw=True,orientation='vertical',labelcolor='k',tit=None,nxtick=None,nytick=None,rasterized=None,alpha=None) :
     """
     Plots a scatter plot with point color-coded by z data
 
@@ -105,13 +105,17 @@ def plotc(ax,x,y,z,yerr=None,xr=None,yr=None,zr=None,size=5,cmap='rainbow',color
     if xt is not None : ax.set_xlabel(xt) 
     if yt is not None : ax.set_ylabel(yt)
     if tit is not None : ax.set_title(tit)
+    if xerr is not None or yerr is not None :
+        ax.errorbar(x,y,xerr=xerr,yerr=yerr,fmt='none',capsize=0,ecolor='k')
     if zr is None :
-        scat=ax.scatter(x,y,c=z,s=size,cmap=cmap,linewidth=linewidth,marker=marker,rasterized=rasterized,alpha=alpha)
+        scat=ax.scatter(x,y,c=z,s=size,cmap=cmap,
+                 linewidth=linewidth, marker=marker,edgecolor=edgecolor,
+                 rasterized=rasterized,alpha=alpha)
     else :
-        scat=ax.scatter(x,y,c=z,vmin=zr[0],vmax=zr[1],s=size,cmap=cmap,linewidth=linewidth,marker=marker,rasterized=rasterized,alpha=alpha)
+        scat=ax.scatter(x,y,c=z,vmin=zr[0],vmax=zr[1],s=size,cmap=cmap,
+                 linewidth=linewidth,marker=marker,edgecolor=edgecolor,
+                 rasterized=rasterized,alpha=alpha)
 
-    if yerr is not None :
-        ax.errorbar(x,y,yerr=yerr,fmt='none',capsize=0,ecolor='k')
     if label is not None :
         ax.text(label[0],label[1],label[2],transform=ax.transAxes,color=labelcolor) 
     if colorbar :
@@ -165,7 +169,11 @@ def plotrow(ax,img,r,norm=True,draw=True) :
             ax.plotl(np.sum(img[r[0]:r[1],:],axis=1))
     if draw : plt.draw()
 
-def plotp(ax,x,y,z=None,typeref=None,types=None,xr=None,yr=None,zr=None,marker='o',size=5,linewidth=0,color='r',facecolors=None,xt=None,yt=None,draw=True,xerr=None,yerr=None,label=None,text=None,labelcolor='k',linewidths=None,nxtick=None,nytick=None,tit=None,contour=None,levels=None,alpha=None,rasterized=None) :
+def plotp(ax,x,y,z=None,typeref=None,types=None,xr=None,yr=None,zr=None,ids=None,
+          marker='o',size=5,linewidth=0,color='r',facecolors=None,
+          xt=None,yt=None,draw=True,xerr=None,yerr=None,
+          label=None,text=None,labelcolor='k',linewidths=None,nxtick=None,nytick=None,
+          tit=None,contour=None,levels=None,alpha=None,rasterized=None) :
     '''
     Plot points, optionally with a series of different markers/sizes keyed to z data
 
@@ -223,7 +231,7 @@ def plotp(ax,x,y,z=None,typeref=None,types=None,xr=None,yr=None,zr=None,marker='
             sz= size[i] if (len(size) > 1)  else size[0]
             mark=marker[i] if (len(marker) > 1) else marker[0]
             col=color[i] if (len(color) > 1) else color[0]
-            if facecolors is 'none' : facecol = 'none'
+            if facecolors == 'none' : facecol = 'none'
             else : facecol = col
             if z is not None :
                 if zr is not None :
@@ -253,6 +261,9 @@ def plotp(ax,x,y,z=None,typeref=None,types=None,xr=None,yr=None,zr=None,marker='
                 levels=np.linspace(1.,im[0].max(),contour)
             ax.contour((im[2][0:-1]+im[2][1:])/2.,(im[1][0:-1]+im[1][1:])/2.,im[0],
                colors=color,levels=levels,alpha=alpha)
+    elif ids is not None :
+        for xx,yy,ii in zip(x,y,ids) :
+          ax.text(xx,yy,ii)
     else :
         ax.scatter(x,y,marker=marker,s=size,linewidth=linewidth,facecolors=facecolors,edgecolors=color,linewidths=linewidths,alpha=alpha,label=label,rasterized=rasterized)
         _data_x = x[np.isfinite(x)]
@@ -262,7 +273,7 @@ def plotp(ax,x,y,z=None,typeref=None,types=None,xr=None,yr=None,zr=None,marker='
             ax.errorbar(x,y,marker=marker,xerr=xerr,yerr=yerr,fmt='none',capsize=0,ecolor=color)
 
     if text is not None :
-        if labelcolor is 'k' and color is not None : labelcolor=color
+        if labelcolor == 'k' and color is not None : labelcolor=color
         ax.text(text[0],text[1],text[2],transform=ax.transAxes,color=labelcolor)
 
     if draw : plt.draw()

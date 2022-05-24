@@ -239,9 +239,10 @@ def plotp(ax,x,y,z=None,typeref=None,types=None,xr=None,yr=None,zr=None,ids=None
                 else :
                     ax.scatter(x[gd],y[gd],c=z[gd],s=sz,marker=mark,linewidths=linewidths,rasterized=rasterized)
             else :
-                ax.scatter(x[gd],y[gd],s=sz,marker=mark,facecolors=facecol,edgecolors=col,linewidths=linewidths,rasterized=rasterized)
+                ax.scatter(x[gd],y[gd],s=sz,marker=mark,facecolors=facecol,edgecolors=col,linewidths=linewidths,rasterized=rasterized,label=types[i])
             if yerr is not None :
                 ax.errorbar(x[gd],y[gd],marker=mark,yerr=yerr[gd],fmt='none',capsize=0,ecolor=col,rasterized=rasterized)
+        ax.legend(fontsize='xx-small')
     elif contour is not None:
         if contour <= 0 :
             gd = np.where((x > np.array(xr).min()) & (x < np.array(xr).max()) & (y>np.array(yr).min()) & (y<np.array(yr).max()) )[0]

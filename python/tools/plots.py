@@ -58,7 +58,15 @@ def event(fig) :
         if _block == 1 :
             _block = 0
             fig.canvas.stop_event_loop()
+    def onclose(event) :
+        global _index, _block, _x, _y, _button, _new_data, tree, _axes
+        _x,_y,_button = (None,None,None)
+        if _block == 1 :
+            _block = 0
+            fig.canvas.stop_event_loop()
+
     cid = fig.canvas.mpl_connect('key_press_event',onpress)
+    cid = fig.canvas.mpl_connect('close_event',onclose)
     if _block == 1 : fig.canvas.start_event_loop(0)
 
 def mark(fig,index=False) :

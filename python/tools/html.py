@@ -34,7 +34,17 @@ def table(data, xtitle=None, ytitle=None, size=100, plots=True, formstr=':8.3f',
             out+='<TD>\n'
         for ix in range(nx) :
             out+='<TD>'+xtitle[ix]+'\n'
+
     for iy in range(ny) :
+        # if all plots are '', then print a full header line
+        header=True
+        for ix in range(nx) :
+            if p[iy,ix] != '' : header=False
+        if header and ytitle is not None :
+            out+='<TR BGCOLOR=LightYellow>\n'
+            out+='<TD COLSPAN={:d}>'.format(nx+1)+ytitle[iy]+'\n'
+            continue
+
         out+='<TR>\n'
         if ytitle is not None :
             out+='<TD>'+ytitle[iy]+'\n'

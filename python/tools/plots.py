@@ -147,11 +147,12 @@ def set_limits_ticks(ax,xr,yr,nxtick=None,nytick=None) :
     else :
         if yr is not None : ax.set_ylim(yr[0]+0.01*(yr[1]-yr[0]),yr[1]-0.01*(yr[1]-yr[0]))
 
-def plotc_append(ax,x,y,z,size=25,linewidth=1,marker='o',facecolor='none',draw=True) :
+def plotc_append(ax,x,y,z,size=25,linewidth=1,marker='o',facecolor='none',draw=True,edgecolor=None) :
     '''
     Adds points to a plot
     '''
-    scat=ax.scatter(x,y,c=z,s=size,linewidth=linewidth,marker=marker,facecolor=facecolor)
+    scat=ax.scatter(x,y,s=size,linewidth=linewidth,marker=marker,facecolor=facecolor,edgecolor=edgecolor)
+    #scat=ax.scatter(x,y,c=z,s=size,linewidth=linewidth,marker=marker,facecolor=facecolor,edgecolor=edgecolor)
     if draw : plt.draw()
 
 def plotrow(ax,img,r,norm=True,draw=True) :
@@ -272,7 +273,10 @@ def plotp(ax,x,y,z=None,typeref=None,types=None,xr=None,yr=None,zr=None,ids=None
                colors=color,levels=levels,alpha=alpha)
     elif ids is not None :
         for xx,yy,ii in zip(x,y,ids) :
-          ax.text(xx,yy,ii)
+          xlim=ax.get_xlim()
+          ylim=ax.get_ylim()
+          if np.isfinite(xx) and np.isfinite(yy) and xx >= xlim[0] and xx <= xlim[1] and yy >= ylim[0] and yy <= ylim[1] :
+              ax.text(xx,yy,ii)
     else :
         ax.scatter(x,y,marker=marker,s=size,linewidth=linewidth,facecolors=facecolors,edgecolors=color,linewidths=linewidths,alpha=alpha,label=label,rasterized=rasterized)
         _data_x = x[np.isfinite(x)]

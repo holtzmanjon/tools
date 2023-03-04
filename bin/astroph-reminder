@@ -1,0 +1,23 @@
+#!/home/local/Anaconda3-2020.02/envs/py3.9/bin/python
+
+import subprocess
+import argparse
+from tools import reminder
+
+if __name__ == '__main__' :
+
+    parser=argparse.ArgumentParser()
+    parser.add_argument('ndays',type=int)
+    parser.add_argument('--broadcast')
+    parser.add_argument('--header')
+    parser.add_argument('--individual',action='store_true')
+    args = parser.parse_args()
+
+    # download the current version of google sheet
+    addr='https://docs.google.com/spreadsheets/d/1qzt-mpgZT7asyPhA3bQa_6bwaNcTzYlMikj3g0y1XtE/export?format=tsv'
+    fp=open('astroph','w')
+    output=subprocess.run(['curl','-L',addr],stdout=fp)
+    fp.close()
+
+    reminder.send('astroph',args.ndays,header=args.header,
+             broadcast=args.broadcast,individual=args.individual)

@@ -8,14 +8,14 @@ import argparse
 import numpy as np
 from argparse import RawTextHelpFormatter
 
-def send(tsvfile,ndays=7,broadcast=None,individual=False,
+def send(tsvfile,ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
              header='astro-ph this week:') :
     """ Go through tsvfile and send mail if day is within ndays from today
+        Currently hardwired to send columns 1, 2, and 4
 
         tsvfile (str) : file to read date (1st column, format includes Month 
                          and ends with day, e.g.  Thursday, May 10), plus
-                         other columns to include in reminder (col 4 for
-                         individual email)
+                         other columns to include in reminder 
         ndays (int) : send message if date is within ndays from today
         broadcast (str) : if not None, send message to this address
         individual (bool) : if True, send to address in column 3
@@ -26,14 +26,9 @@ def send(tsvfile,ndays=7,broadcast=None,individual=False,
     print('broadcast: ', broadcast)
     print('individual: ', individual)
 
-    # download the current version of google sheet
-    fp=open('astroph','w')
-    output=subprocess.run(['curl','-L',addr],stdout=fp)
-    fp.close()
-
     # setup for dates, get current day number
-    months=['January','February','March','April','May','June',
-            'July','August','September','October','November','December']
+    months=['Jan','Feb','Mar','Apr','May','Jun',
+            'Jul','Aug','Sep','Oct','Nov','Dec']
     year=2023
     daynow=datetime.now().timetuple().tm_yday
 
@@ -47,6 +42,7 @@ def send(tsvfile,ndays=7,broadcast=None,individual=False,
     oldout=''
     fp=open(tsvfile)
     send = False
+    indiv = []
     for line in fp:
         date=line.split('\t')[0]
         for imonth,month in enumerate(months) :
@@ -65,21 +61,31 @@ def send(tsvfile,ndays=7,broadcast=None,individual=False,
             out=line.split('\t')
             if len(out[0]) == 0 : out[0] = oldout[0]
             if out[1] != '' : 
-                fout.write('  {:<24s} {:10s} {:s}\n'.format(out[0],out[1],out[2]))
+                fout.write('  {:<24s} {:10s} {:s}\n'.format(out[0],out[1],out[3]))
                 send = True
             oldout=copy.copy(out)
+            if individual : indiv.append(out[2])
 
     fout.close()
 
     # send message to requested recipients
     if send :
-        fin = open('message')
         if individual :
-            print('mail sent to: ', out[3])
-            subprocess.run(['mail','-s','astroph reminder',out[3]],
-                           stdin=fin)
+            for i in indiv :
+                if len(i) == 0 : continue
+                j=np.char.find(i,'@')
+                if j < 0 : i+='@'+domain
+                fin = open('message')
+                subprocess.run(['mail','-s','astroph reminder',i],
+                               stdin=fin)
+                fin.close()
+                print('mail sent to: ', i)
 
         if broadcast != None :
-            print('mail sent to: ', broadcast)
+            j=np.char.find(broadcast,'@')
+            if j < 0 : broadcast+='@'+domain
+            fin = open('message')
             subprocess.run(['mail','-s','astroph reminder',broadcast],
                            stdin=fin)
+            fin.close()
+            print('mail sent to: ', broadcast)

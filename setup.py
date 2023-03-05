@@ -12,6 +12,8 @@ setup(
     package_dir={"": "python"},
     install_requires=[
                       'numpy',                     
+                      'scipy',                     
+                      'matplotlib',                     
                       ],
 
     classifiers=[

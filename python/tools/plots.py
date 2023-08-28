@@ -278,7 +278,7 @@ def plotp(ax,x,y,z=None,typeref=None,types=None,xr=None,yr=None,zr=None,ids=None
           xlim=ax.get_xlim()
           ylim=ax.get_ylim()
           if np.isfinite(xx) and np.isfinite(yy) and xx >= xlim[0] and xx <= xlim[1] and yy >= ylim[0] and yy <= ylim[1] :
-              ax.text(xx,yy,ii)
+              ax.text(xx,yy,ii,color=color)
     else :
         ax.scatter(x,y,marker=marker,s=size,linewidth=linewidth,facecolors=facecolors,edgecolors=color,linewidths=linewidths,alpha=alpha,label=label,rasterized=rasterized)
         _data_x = x[np.isfinite(x)]

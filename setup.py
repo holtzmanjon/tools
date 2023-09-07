@@ -11,7 +11,10 @@ setup(
     packages=['tools'],
     package_dir={"": "python"},
     install_requires=[
+                      'matplotlib',                     
                       'numpy',                     
+                      'scipy',                     
+                      'bokeh',                     
                       ],
 
     classifiers=[

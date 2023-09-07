@@ -70,6 +70,8 @@ def event(fig) :
     if _block == 1 : fig.canvas.start_event_loop(0)
 
 def mark(fig,index=False) :
+    """ Return cursor position and key pressed
+    """
     global _block, _x, _y, _button
     _block = 1
     event(fig)
@@ -319,7 +321,7 @@ def ax(subplot=111) :
     fig=plt.figure()
     return fig.add_subplot(subplot)
 
-def multi(nx,ny,figsize=None,hspace=1,wspace=1,sharex=False,sharey=False,squeeze=True,xtickrot=None,brokenx=False) :
+def multi(nx,ny,figsize=None,hspace=1,wspace=1,sharex=False,sharey=False,squeeze=True,xtickrot=None,brokenx=False,equal=False) :
     '''
     Returns figure and axes array for grid of nx by ny plots, suppressing appropriate axes if requested by hspace and wspace
 
@@ -329,13 +331,20 @@ def multi(nx,ny,figsize=None,hspace=1,wspace=1,sharex=False,sharey=False,squeeze
 
     Keyword args:
        figsize  : specifies figure size
-       hspace   : space (0.-1.) between vertical plots (height)
-       wspace   : space (0.-1.) between horizont plots (width)
-       sharex   : force subplots to have same x-axes
-       sharey   : force subplots to have same y-axes
+       hspace (float)  : space (0.-1.) between vertical plots (height). Defaults to 1
+       wspace (float)  : space (0.-1.) between horizont plots (width). Defaults to 1
+       sharex (bool)   : force subplots to have same x-axes. Defaults to False
+       sharey (bool)   : force subplots to have same y-axes. Defaults to False
+       equal (bool)    : If True, set_aspect to 'equal'. Defaults to False.
+       squeeze (bool)  : if True (default), output Axes will have only as many dimenions as needed, if False
+                  will always be 2D (even if 1x1)
+       brokenx (bool)  : different axes in x-direction will not have ylabels, and can be used to
+                  make plots with different segments of x limits, appearing like a plot
+                  with broken axes. Defaults to False
     '''
     fig,ax = plt.subplots(ny,nx,figsize=figsize,sharex=sharex,sharey=sharey,squeeze=squeeze)
     fig.subplots_adjust(hspace=hspace,wspace=wspace)
+
     if (hspace < 0.01) & (ny>1):
         # if we are vertical stacking, turn off xticks for all except bottom
         if squeeze and nx == 1 :
@@ -348,6 +357,7 @@ def multi(nx,ny,figsize=None,hspace=1,wspace=1,sharex=False,sharey=False,squeeze
                 for j in range(0,ny-1) : 
                     ticklabels = ticklabels + ax[j,i].get_xticklabels()
         plt.setp(ticklabels, visible=False)
+
     if (wspace < 0.01) & (nx> 1):
         # if we are horizontal stacking, turn off yticks for all except left
         if squeeze and ny == 1 :
@@ -360,6 +370,7 @@ def multi(nx,ny,figsize=None,hspace=1,wspace=1,sharex=False,sharey=False,squeeze
                 for j in range(ny) : 
                     ticklabels = ticklabels + ax[j,i].get_yticklabels()
         plt.setp(ticklabels, visible=False)
+
     if brokenx & (nx>1) :
         for i in range(0,nx) :
           for j in range(0,ny) :
@@ -390,6 +401,18 @@ def multi(nx,ny,figsize=None,hspace=1,wspace=1,sharex=False,sharey=False,squeeze
           else :
               for tick in ax[j,i].get_xticklabels(): tick.set_rotation( xtickrot ) 
       fig.subplots_adjust(bottom=0.2)
+
+    if equal :
+      for i in range(nx) :
+        for j in range(0,ny) : 
+          if squeeze and nx == 1 and ny == 1:
+              ax.set_aspect('equal')
+          elif squeeze and nx>1 and ny == 1:
+              ax[i].set_aspect('equal')
+          elif squeeze and ny>1 and nx == 1:
+              ax[j].set_aspect('equal')
+          else :
+              ax[j,i].set_aspect('equal')
     return fig,ax
 
 

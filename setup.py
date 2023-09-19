@@ -1,8 +1,8 @@
 from setuptools import setup
 
 setup(
-    name='holtz-tools',
-    version='0.3.3',    
+    name='holtztools',
+    version='0.4.0',    
     description='Python utility tools',
     url='https://github.com/holtzmanjon/tools',
     author='Jon Holtzman',

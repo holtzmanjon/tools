@@ -1,5 +1,5 @@
 
-The tools package provides some basic convenience tools that wrap
+The holtztools package provides some basic convenience tools that wrap
 lower level Python routines:
 
 - plots : routines for making and labeling plots with single line
@@ -9,7 +9,3 @@ for grids of plots
 - match
 - struct
 - fit
-
-
-
-

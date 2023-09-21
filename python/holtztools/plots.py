@@ -278,7 +278,7 @@ def plotp(ax,x,y,z=None,typeref=None,types=None,xr=None,yr=None,zr=None,ids=None
           xlim=ax.get_xlim()
           ylim=ax.get_ylim()
           if np.isfinite(xx) and np.isfinite(yy) and xx >= xlim[0] and xx <= xlim[1] and yy >= ylim[0] and yy <= ylim[1] :
-              ax.text(xx,yy,ii)
+              ax.text(xx,yy,ii,color=color)
     else :
         ax.scatter(x,y,marker=marker,s=size,linewidth=linewidth,facecolors=facecolors,edgecolors=color,linewidths=linewidths,alpha=alpha,label=label,rasterized=rasterized)
         _data_x = x[np.isfinite(x)]
@@ -459,3 +459,118 @@ class LassoManager(object):
                            self.callback)
         # acquire a lock on the widget drawing
         self.canvas.widgetlock(self.lasso)
+
+
+# bokeh for interactive HTML plots
+
+from bokeh.plotting import figure, show, output_file, save
+from bokeh.layouts import gridplot, row, column
+from bokeh.models import TabPanel, Tabs, ColumnDataSource, LinearColorMapper, ColorBar, Range1d
+
+def bokeh_figure(width=600, height=600) :
+    """ Return a bokeh figure
+    """
+    return figure(width=width, height=height)
+
+def bokeh_multi(nx,ny,width=600,height=600,sharex=False) :
+    """ Return 2D array of bokeh figures for input nx, ny
+    """
+    ax=[]
+    for iy in range(ny) :
+        xax=[]
+        for ix in range(nx) :
+            if ix == 0 and iy == 0 :
+                xax.append(figure(width=width,height=height))
+                xr=xax[0].x_range
+            elif sharex :
+                xax.append(figure(width=width,height=height,x_range=xr))
+            else :
+                xax.append(figure(width=width,height=height))
+
+        ax.append(xax)
+    return np.array(ax)
+
+def bokeh_grid(grid,tab=None) :
+    """ Return bokeh layout for input grid array
+    """
+    if len(grid) == 1 and len(grid[0]) == 1 :
+        fig = grid[0][0]
+    elif len(grid) == 1 :
+        fig = row(grid[0])
+    elif len(grid[0]) == 1  :
+        fig = column(np.array(grid)[:,0].tolist())
+    else :
+        fig = gridplot(grid.tolist())
+
+    if tab is not None : return TabPanel(child=fig, title=tab)
+    else : return fig 
+
+def bokeh_show(fig,tab=False,outfile=None) :
+    """ Display or save bokeh plots
+    """
+    if outfile is not None :
+        output_file(outfile)
+        if tab :
+            save(Tabs(tabs=fig))
+        else :
+            save(fig)
+        return
+
+    if tab :
+        show(Tabs(tabs=fig))
+    else :
+        show(fig)
+        
+def bokeh_plotp(ax,x,y,err=None,yerr=None,xr=None,yr=None,zr=None,size=5,color='red',xt=None,yt=None,label=None,marker='o',edgecolor=None,title=None) :
+    """
+    Plot points in bokeh plot
+    """
+
+    source= ColumnDataSource({'x':x,'y':y})
+    if label is not None :
+        if marker == 'o' : ax.circle('x','y',source=source,fill_color=color,size=size,legend_label=label,line_color=edgecolor)
+        elif marker == 's' : ax.square('x','y',source=source,fill_color=color,size=size,legend_label=label)
+    else :
+        if marker == 'o' : ax.circle('x','y',source=source,fill_color=color,size=size,line_color=None)
+        elif marker == 's' : ax.square('x','y',source=source,fill_color=color,size=size)
+    if xt is not None :
+        ax.xaxis.axis_label = xt
+    if yt is not None :
+        ax.yaxis.axis_label = yt
+    if xr is not None :
+        ax.x_range = Range1d(xr[0],xr[1])
+    if yr is not None :
+        ax.y_range = Range1d(yr[0],yr[1])
+    if title is not None :
+        ax.title.text = title
+
+def bokeh_plotc(ax,x,y,z,xerr=None,yerr=None,xr=None,yr=None,zr=None,size=5,cmap='Viridis256',colorbar=False,xt=None,yt=None,zt=None,label=None,linewidth=0,edgecolor=None,marker='o',draw=True,orientation='vertical',labelcolor='k',tit=None,nxtick=None,nytick=None,rasterized=None,alpha=None,title=None) :
+    """
+    Plot points in bokeh plot, color-coded by z value
+    """
+
+    source=ColumnDataSource({'x':x,'y':y,'z':z})
+    if zr is None : zr=[z.min(),z.max()]
+    exp_cmap=LinearColorMapper(palette=cmap,low=zr[0],high=zr[1])
+    if label is not None :
+        ax.circle('x','y',source=source,fill_color={'field' : 'z', 'transform' : exp_cmap},size=size,legend_label=label,line_color=edgecolor)
+    else :
+        ax.circle('x','y',source=source,fill_color={'field' : 'z', 'transform' : exp_cmap},size=size,line_color=edgecolor)
+    if xt is not None :
+        ax.xaxis.axis_label = xt
+    if yt is not None :
+        ax.yaxis.axis_label = yt
+    if xr is not None :
+        ax.x_range = Range1d(xr[0],xr[1])
+    if yr is not None :
+        ax.y_range = Range1d(yr[0],yr[1])
+    if title is not None :
+        ax.title.text = title
+    if colorbar :
+        color_bar = ColorBar(color_mapper=exp_cmap, 
+                     label_standoff=12, border_line_color=None, location=(0,0))
+        if zt is not None :
+            color_bar.title = zt
+            color_bar.title_text_align = 'right'
+        ax.add_layout(color_bar, 'right')
+

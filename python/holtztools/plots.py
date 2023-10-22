@@ -257,15 +257,15 @@ def plotp(ax,x,y,z=None,typeref=None,types=None,xr=None,yr=None,zr=None,ids=None
     elif contour is not None:
         if contour <= 0 :
             gd = np.where((x > np.array(xr).min()) & (x < np.array(xr).max()) & (y>np.array(yr).min()) & (y<np.array(yr).max()) )[0]
+            if len(gd) == 0 : return
             data = np.vstack([x[gd],y[gd]])
             kde = gaussian_kde(data)
-            #kde = gaussian_kde(data,bw_method=abs(contour))
             xgrid = np.linspace(np.array(xr).min(), np.array(xr).max(), 40)
             ygrid = np.linspace(np.array(yr).min(), np.array(yr).max(), 40)
             Xgrid, Ygrid = np.meshgrid(xgrid, ygrid)
             Z = kde.evaluate(np.vstack([Xgrid.ravel(), Ygrid.ravel()]))
             # Plot the result as an image
-            ax.imshow(np.log(Z).reshape(Xgrid.shape), origin='lower', aspect='auto',vmin=np.log(Z).min(),vmax=np.log(Z).max(),
+            ax.imshow(Z.reshape(Xgrid.shape), origin='lower', aspect='auto',vmin=Z.min(),vmax=Z.max(),
                        extent=[xr[0], xr[1], yr[0], yr[1]], cmap='Blues')
         else :
             im = np.histogram2d(y,x,range=[yr,xr],bins=20)

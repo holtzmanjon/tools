@@ -472,22 +472,24 @@ def bokeh_figure(width=600, height=600) :
     """
     return figure(width=width, height=height)
 
-def bokeh_multi(nx,ny,width=600,height=600,sharex=False,log=False) :
+def bokeh_multi(nx,ny,width=600,height=600,sharex=False,xlog=False,ylog=False) :
     """ Return 2D array of bokeh figures for input nx, ny
     """
     ax=[]
-    if log : y_axis_type = 'log'
+    if ylog : y_axis_type = 'log'
     else : y_axis_type = 'auto'
+    if xlog : x_axis_type = 'log'
+    else : x_axis_type = 'auto'
     for iy in range(ny) :
         xax=[]
         for ix in range(nx) :
             if ix == 0 and iy == 0 :
-                xax.append(figure(width=width,height=height,y_axis_type=y_axis_type))
+                xax.append(figure(width=width,height=height,y_axis_type=y_axis_type,x_axis_type=x_axis_type))
                 xr=xax[0].x_range
             elif sharex :
-                xax.append(figure(width=width,height=height,x_range=xr,y_axis_type=y_axis_type))
+                xax.append(figure(width=width,height=height,x_range=xr,y_axis_type=y_axis_type,x_axis_type=x_axis_type))
             else :
-                xax.append(figure(width=width,height=height,y_axis_type=y_axis_type))
+                xax.append(figure(width=width,height=height,y_axis_type=y_axis_type,x_axis_type=x_axis_type))
 
         ax.append(xax)
     return np.array(ax)

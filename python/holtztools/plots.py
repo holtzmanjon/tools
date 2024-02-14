@@ -466,16 +466,19 @@ class LassoManager(object):
 from bokeh.plotting import figure, show, output_file, save
 from bokeh.layouts import gridplot, row, column
 from bokeh.models import TabPanel, Tabs, ColumnDataSource, LinearColorMapper, ColorBar, Range1d
+from bokeh.models.widgets import DateRangeSlider, Slider, RangeSlider
+from bokeh.models.callbacks import CustomJS
 
 def bokeh_figure(width=600, height=600) :
     """ Return a bokeh figure
     """
     return figure(width=width, height=height)
 
-def bokeh_multi(nx,ny,width=600,height=600,sharex=False) :
+def bokeh_multi(nx,ny,width=600,height=600,sharex=False,slider=None) :
     """ Return 2D array of bokeh figures for input nx, ny
     """
     ax=[]
+
     for iy in range(ny) :
         xax=[]
         for ix in range(nx) :
@@ -488,7 +491,16 @@ def bokeh_multi(nx,ny,width=600,height=600,sharex=False) :
                 xax.append(figure(width=width,height=height))
 
         ax.append(xax)
-    return np.array(ax)
+
+    if slider is not None :
+        xax=[]
+        for ix in range(nx) :
+            xax.append(RangeSlider(title="slider", start=slider.min(), end=slider.max(),
+                                   value=(slider.min(),slider.max()), step=1, width=300))
+        ax.append(xax)
+
+
+    return bokeh_grid(ax),np.array(ax)
 
 def bokeh_grid(grid,tab=None) :
     """ Return bokeh layout for input grid array
@@ -544,7 +556,7 @@ def bokeh_plotp(ax,x,y,err=None,yerr=None,xr=None,yr=None,zr=None,size=5,color='
     if title is not None :
         ax.title.text = title
 
-def bokeh_plotc(ax,x,y,z,xerr=None,yerr=None,xr=None,yr=None,zr=None,size=5,cmap='Viridis256',colorbar=False,xt=None,yt=None,zt=None,label=None,linewidth=0,edgecolor=None,marker='o',draw=True,orientation='vertical',labelcolor='k',tit=None,nxtick=None,nytick=None,rasterized=None,alpha=None,title=None) :
+def bokeh_plotc(ax,x,y,z,xerr=None,yerr=None,xr=None,yr=None,zr=None,size=5,cmap='Viridis256',colorbar=False,xt=None,yt=None,zt=None,label=None,linewidth=0,edgecolor=None,marker='o',draw=True,orientation='vertical',labelcolor='k',tit=None,nxtick=None,nytick=None,rasterized=None,alpha=None,title=None,slider=None) :
     """
     Plot points in bokeh plot, color-coded by z value
     """
@@ -573,4 +585,48 @@ def bokeh_plotc(ax,x,y,z,xerr=None,yerr=None,xr=None,yr=None,zr=None,size=5,cmap
             color_bar.title = zt
             color_bar.title_text_align = 'right'
         ax.add_layout(color_bar, 'right')
+
+    if slider is not None :
+        source2=ColumnDataSource({'x':x,'y':y,'z':z})
+        #range_slider = RangeSlider(title="slider", start=z.min(), end=z.max(),
+        #                               value=(z.min(),z.max()), step=1, width=300)
+
+        callback = CustomJS(args=dict(source=source, ref_source=source2), code="""
+            // print out array of slider limits
+            console.log(cb_obj.value); 
+            const data = source.data;
+            const ref = ref_source.data;
+            console.log(ref)
+
+            const rangevar = ref['z']
+            let ind = []
+            rangevar.forEach((val,index) => {
+              if ((val >= cb_obj.value[0]) && (val <= cb_obj.value[1])) {
+                ind.push(index)
+              }
+            })
+            console.log(ind); 
+
+            let x = []
+            let y = []
+            let z = []
+            ind.forEach((val,index) => {
+              x.push(ref['x'][val]);
+              y.push(ref['y'][val]);
+              z.push(ref['z'][val]);
+            })
+            console.log(x);
+
+            data['x'] = x;
+            data['y'] = y;
+            data['z'] = z;
+            source.change.emit()
+    
+            """)
+
+        slider.js_on_change('value',callback)
+        #layout = column(ax, range_slider)
+
+        #show(layout)
+
 

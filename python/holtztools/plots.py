@@ -465,7 +465,7 @@ class LassoManager(object):
 
 from bokeh.plotting import figure, show, output_file, save
 from bokeh.layouts import gridplot, row, column
-from bokeh.models import TabPanel, Tabs, ColumnDataSource, LinearColorMapper, ColorBar, Range1d
+from bokeh.models import TabPanel, Tabs, ColumnDataSource, LinearColorMapper, ColorBar, Range1d, HoverTool
 from bokeh.models.widgets import DateRangeSlider, Slider, RangeSlider
 from bokeh.models.callbacks import CustomJS
 
@@ -483,24 +483,27 @@ def bokeh_multi(nx,ny,width=600,height=600,sharex=False,sharey=False,xlog=False,
     if xlog : x_axis_type = 'log'
     else : x_axis_type = 'auto'
 
+    TOOLTIPS = [
+        ("(x,y)", "($x, $y)"),
+    ]
     for iy in range(ny) :
         xax=[]
         for ix in range(nx) :
             if ix == 0 and iy == 0 :
-                xax.append(figure(width=width,height=height,y_axis_type=y_axis_type,x_axis_type=x_axis_type))
+                xax.append(figure(width=width,height=height,y_axis_type=y_axis_type,x_axis_type=x_axis_type,tooltips=TOOLTIPS))
                 xr=xax[0].x_range
                 yr=xax[0].y_range
             elif sharex and sharey:
                 xax.append(figure(width=width,height=height,x_range=xr,y_range=yr,
-                           y_axis_type=y_axis_type,x_axis_type=x_axis_type))
+                           y_axis_type=y_axis_type,x_axis_type=x_axis_type,tooltips=TOOLTIPS))
             elif sharex :
                 xax.append(figure(width=width,height=height,x_range=xr,
-                           y_axis_type=y_axis_type,x_axis_type=x_axis_type))
+                           y_axis_type=y_axis_type,x_axis_type=x_axis_type,tooltips=TOOLTIPS))
             elif sharey :
                 xax.append(figure(width=width,height=height,y_range=yr,
-                           y_axis_type=y_axis_type,x_axis_type=x_axis_type))
+                           y_axis_type=y_axis_type,x_axis_type=x_axis_type,tooltips=TOOLTIPS))
             else :
-                xax.append(figure(width=width,height=height,y_axis_type=y_axis_type,x_axis_type=x_axis_type))
+                xax.append(figure(width=width,height=height,y_axis_type=y_axis_type,x_axis_type=x_axis_type,tooltips=TOOLTIPS))
 
         ax.append(xax)
 
@@ -545,7 +548,8 @@ def bokeh_show(fig,tab=False,outfile=None) :
     else :
         show(fig)
         
-def bokeh_plotp(ax,x,y,err=None,yerr=None,xr=None,yr=None,zr=None,size=5,color='red',xt=None,yt=None,label=None,marker='o',edgecolor=None,title=None) :
+def bokeh_plotp(ax,x,y,err=None,yerr=None,xr=None,yr=None,zr=None,size=5,color='red',xt=None,yt=None,
+                label=None,marker='o',edgecolor=None,title=None,hover=False) :
     """
     Plot points in bokeh plot
     """
@@ -567,6 +571,9 @@ def bokeh_plotp(ax,x,y,err=None,yerr=None,xr=None,yr=None,zr=None,size=5,color='
         ax.y_range = Range1d(yr[0],yr[1])
     if title is not None :
         ax.title.text = title
+    if hover :
+        hover = HoverTool(tooltips=[('Label', '@labels')]) 
+        ax.add_tools(hover) 
 
 def bokeh_plotl(ax,x,y,err=None,yerr=None,xr=None,yr=None,zr=None,size=5,color='red',xt=None,yt=None,label=None,title=None) :
     """

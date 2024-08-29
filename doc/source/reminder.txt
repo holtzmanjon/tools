@@ -8,7 +8,7 @@ Google doc: this is how it is used for NMSU astroph reminders.
 
 
 
-.. automodule:: holtz.tools.html
+.. automodule:: holtztools.reminder
    :members:
    :member-order: bysource
 

@@ -1,7 +1,7 @@
 html module
 ***********
 
-.. automodule:: holtz.tools.html
+.. automodule:: holtztools.html
    :members:
    :member-order: bysource
 

@@ -27,6 +27,7 @@ dependencies = [
     "numpy",                     
     "scipy",                     
     "bokeh",                     
+    "astropy",                     
 ]
 
 [project.urls]

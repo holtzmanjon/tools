@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+import pdb
 
 def getfile(file=None,access='w') :
     if file is not None : 
@@ -60,7 +61,7 @@ def table(data, xtitle=None, ytitle=None, size=100, plots=True, formstr=':8.3f',
     return out
 
 
-def htmltab(plots, file=None, xtitle=None, ytitle=None, size=100, header=None) :
+def htmltab(plots, file=None, xtitle=None, ytitle=None, size='100%', header=None) :
     """
     Given 2D list of plots, generates HTML that displays these in a table, with optional
     titling of rows and columns and top header
@@ -98,7 +99,7 @@ def htmltab(plots, file=None, xtitle=None, ytitle=None, size=100, header=None) :
         for ix in range(nx) :
             f.write('<TD>\n')
             f.write('<A HREF="'+p[iy][ix]+'">'+
-                    '<IMG SRC="'+p[iy][ix]+'" WIDTH='+str(size)+'%></A>\n')
+                    '<IMG SRC="'+p[iy][ix]+'" WIDTH='+str(size)+'></A>\n')
             f.write('</TD>\n')
     f.write('</TABLE>\n')
     tail(f)
@@ -119,5 +120,8 @@ def tab(tab,file=sys.stdout,sortable=False) :
     for i in range(len(tab)) :
         file.write('<TR>\n')
         for name in tab.dtype.names :
-            file.write('<TD>'+str(tab[name][i])+'\n')
+            try :
+                file.write('<TD>'+tab[name].format.format(tab[name][i])+'\n')
+            except :
+                file.write('<TD>'+str(tab[name][i])+'\n')
     file.write('</TABLE>')

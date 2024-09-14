@@ -29,6 +29,7 @@ Contents:
    struct
    fit
    match
+   reminder
 
 
 Indices and tables

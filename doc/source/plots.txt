@@ -21,7 +21,7 @@ the event handler will print data associated with the nearest point.
 
 Module functions
 
-.. automodule:: holtz.tools.plots
+.. automodule:: holtztools.plots
    :members:
    :member-order: bysource
 

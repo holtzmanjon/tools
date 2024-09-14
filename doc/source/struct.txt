@@ -1,7 +1,7 @@
 struct module:
 ***********
 
-.. automodule:: holtz.tools.struct
+.. automodule:: holtztools.struct
    :members:
    :member-order: bysource
 

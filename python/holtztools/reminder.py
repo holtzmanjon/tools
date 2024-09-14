@@ -29,7 +29,6 @@ def send(tsvfile,ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
     # setup for dates, get current day number
     months=['Jan','Feb','Mar','Apr','May','Jun',
             'Jul','Aug','Sep','Oct','Nov','Dec']
-    year=2023
     daynow=datetime.now().timetuple().tm_yday
 
     # start to construct the email message
@@ -41,6 +40,10 @@ def send(tsvfile,ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
     m=0
     oldout=''
     fp=open(tsvfile)
+    # get year from 1st column of 2nd line
+    line=fp.readline()
+    line=fp.readline()
+    year=int(line.split('\t')[0])
     send = False
     indiv = []
     for line in fp:

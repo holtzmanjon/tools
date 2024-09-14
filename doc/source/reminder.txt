@@ -1,0 +1,14 @@
+reminder module
+***************
+
+reminder is a tool that sends email to desired recipients based on dates,
+email addresses, and a comment field in a TSV file.  This may be useful
+for group based reminders. The TSV file may be downloaded, e.g., from a 
+Google doc: this is how it is used for NMSU astroph reminders.
+
+
+
+.. automodule:: holtztools.reminder
+   :members:
+   :member-order: bysource
+

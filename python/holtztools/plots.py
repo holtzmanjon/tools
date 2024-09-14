@@ -465,14 +465,16 @@ class LassoManager(object):
 
 from bokeh.plotting import figure, show, output_file, save
 from bokeh.layouts import gridplot, row, column
-from bokeh.models import TabPanel, Tabs, ColumnDataSource, LinearColorMapper, ColorBar, Range1d
+from bokeh.models import TabPanel, Tabs, ColumnDataSource, LinearColorMapper, ColorBar, Range1d, HoverTool
+from bokeh.models.widgets import DateRangeSlider, Slider, RangeSlider
+from bokeh.models.callbacks import CustomJS
 
 def bokeh_figure(width=600, height=600) :
     """ Return a bokeh figure
     """
     return figure(width=width, height=height)
 
-def bokeh_multi(nx,ny,width=600,height=600,sharex=False,xlog=False,ylog=False) :
+def bokeh_multi(nx,ny,width=600,height=600,sharex=False,sharey=False,xlog=False,ylog=False,slider=None,tab=None) :
     """ Return 2D array of bokeh figures for input nx, ny
     """
     ax=[]
@@ -480,19 +482,40 @@ def bokeh_multi(nx,ny,width=600,height=600,sharex=False,xlog=False,ylog=False) :
     else : y_axis_type = 'auto'
     if xlog : x_axis_type = 'log'
     else : x_axis_type = 'auto'
+
+    TOOLTIPS = [
+        ("(x,y)", "($x, $y)"),
+    ]
     for iy in range(ny) :
         xax=[]
         for ix in range(nx) :
             if ix == 0 and iy == 0 :
-                xax.append(figure(width=width,height=height,y_axis_type=y_axis_type,x_axis_type=x_axis_type))
+                xax.append(figure(width=width,height=height,y_axis_type=y_axis_type,x_axis_type=x_axis_type,tooltips=TOOLTIPS))
                 xr=xax[0].x_range
+                yr=xax[0].y_range
+            elif sharex and sharey:
+                xax.append(figure(width=width,height=height,x_range=xr,y_range=yr,
+                           y_axis_type=y_axis_type,x_axis_type=x_axis_type,tooltips=TOOLTIPS))
             elif sharex :
-                xax.append(figure(width=width,height=height,x_range=xr,y_axis_type=y_axis_type,x_axis_type=x_axis_type))
+                xax.append(figure(width=width,height=height,x_range=xr,
+                           y_axis_type=y_axis_type,x_axis_type=x_axis_type,tooltips=TOOLTIPS))
+            elif sharey :
+                xax.append(figure(width=width,height=height,y_range=yr,
+                           y_axis_type=y_axis_type,x_axis_type=x_axis_type,tooltips=TOOLTIPS))
             else :
-                xax.append(figure(width=width,height=height,y_axis_type=y_axis_type,x_axis_type=x_axis_type))
+                xax.append(figure(width=width,height=height,y_axis_type=y_axis_type,x_axis_type=x_axis_type,tooltips=TOOLTIPS))
 
         ax.append(xax)
-    return np.array(ax)
+
+    if slider is not None :
+        xax=[]
+        for ix in range(nx) :
+            xax.append(RangeSlider(title=slider[0], start=slider[1], end=slider[2],
+                                   value=(slider[1],slider[2]), step=1, width=int(0.8*width)))
+        ax.append(xax)
+
+    ax=np.array(ax)
+    return bokeh_grid(ax,tab=tab),ax
 
 def bokeh_grid(grid,tab=None) :
     """ Return bokeh layout for input grid array
@@ -525,7 +548,8 @@ def bokeh_show(fig,tab=False,outfile=None) :
     else :
         show(fig)
         
-def bokeh_plotp(ax,x,y,err=None,yerr=None,xr=None,yr=None,zr=None,size=5,color='red',xt=None,yt=None,label=None,marker='o',edgecolor=None,title=None) :
+def bokeh_plotp(ax,x,y,err=None,yerr=None,xr=None,yr=None,zr=None,size=5,color='red',xt=None,yt=None,
+                label=None,marker='o',edgecolor=None,title=None,hover=False) :
     """
     Plot points in bokeh plot
     """
@@ -547,13 +571,43 @@ def bokeh_plotp(ax,x,y,err=None,yerr=None,xr=None,yr=None,zr=None,size=5,color='
         ax.y_range = Range1d(yr[0],yr[1])
     if title is not None :
         ax.title.text = title
+    if hover :
+        hover = HoverTool(tooltips=[('Label', '@labels')]) 
+        ax.add_tools(hover) 
 
-def bokeh_plotc(ax,x,y,z,xerr=None,yerr=None,xr=None,yr=None,zr=None,size=5,cmap='Viridis256',colorbar=False,xt=None,yt=None,zt=None,label=None,linewidth=0,edgecolor=None,marker='o',draw=True,orientation='vertical',labelcolor='k',tit=None,nxtick=None,nytick=None,rasterized=None,alpha=None,title=None) :
+def bokeh_plotl(ax,x,y,err=None,yerr=None,xr=None,yr=None,zr=None,size=5,color='red',xt=None,yt=None,label=None,title=None) :
+    """
+    Plot lines in bokeh plot
+    """
+
+    source= ColumnDataSource({'x':x,'y':y})
+    if label is not None :
+        ax.line('x','y',source=source,legend_label=label,line_color=color)
+    else :
+        ax.line('x','y',source=source,line_color=color)
+    if xt is not None :
+        ax.xaxis.axis_label = xt
+    if yt is not None :
+        ax.yaxis.axis_label = yt
+    if xr is not None :
+        ax.x_range = Range1d(xr[0],xr[1])
+    if yr is not None :
+        ax.y_range = Range1d(yr[0],yr[1])
+    if title is not None :
+        ax.title.text = title
+
+def bokeh_plotc(ax,x,y,z,xerr=None,yerr=None,xr=None,yr=None,zr=None,size=5,cmap='Viridis256',colorbar=False,xt=None,yt=None,zt=None,
+                label=None,linewidth=0,edgecolor=None,marker='o',draw=True,orientation='vertical',labelcolor='k',tit=None,
+                nxtick=None,nytick=None,rasterized=None,alpha=None,title=None,slider=None,sliderdata=None) :
     """
     Plot points in bokeh plot, color-coded by z value
     """
 
-    source=ColumnDataSource({'x':x,'y':y,'z':z})
+    if sliderdata is None :
+        source=ColumnDataSource({'x':x,'y':y,'z':z})
+    else :
+        source=ColumnDataSource({'x':x,'y':y,'z':z, 'range' : sliderdata})
+        source2=ColumnDataSource({'x':x,'y':y,'z':z, 'range' : sliderdata})
     if zr is None : zr=[z.min(),z.max()]
     exp_cmap=LinearColorMapper(palette=cmap,low=zr[0],high=zr[1])
     if label is not None :
@@ -565,9 +619,11 @@ def bokeh_plotc(ax,x,y,z,xerr=None,yerr=None,xr=None,yr=None,zr=None,size=5,cmap
     if yt is not None :
         ax.yaxis.axis_label = yt
     if xr is not None :
-        ax.x_range = Range1d(xr[0],xr[1])
+        try: ax.x_range = Range1d(xr[0],xr[1])
+        except :ax.x_range = xr
     if yr is not None :
-        ax.y_range = Range1d(yr[0],yr[1])
+        try :ax.y_range = Range1d(yr[0],yr[1])
+        except :ax.y_range = yr
     if title is not None :
         ax.title.text = title
     if colorbar :
@@ -577,4 +633,43 @@ def bokeh_plotc(ax,x,y,z,xerr=None,yerr=None,xr=None,yr=None,zr=None,size=5,cmap
             color_bar.title = zt
             color_bar.title_text_align = 'right'
         ax.add_layout(color_bar, 'right')
+
+    if slider is not None :
+        callback = CustomJS(args=dict(source=source, ref_source=source2), code="""
+            // print out array of slider limits
+            //console.log(cb_obj.value);
+            const data = source.data;
+            const ref = ref_source.data;
+            //console.log(ref)
+
+            const rangevar = ref['range']
+            let ind = []
+            rangevar.forEach((val,index) => {
+              if ((val >= cb_obj.value[0]) && (val <= cb_obj.value[1])) {
+                ind.push(index)
+              }
+            })
+            //console.log(ind);
+
+            let x = []
+            let y = []
+            let z = []
+            let r = []
+            ind.forEach((val,index) => {
+              x.push(ref['x'][val]);
+              y.push(ref['y'][val]);
+              z.push(ref['z'][val]);
+              r.push(ref['range'][val]);
+            })
+            console.log(x);
+
+            data['x'] = x;
+            data['y'] = y;
+            data['z'] = z;
+            data['range'] = r;
+            source.change.emit()
+
+            """)
+
+        slider.js_on_change('value',callback)
 

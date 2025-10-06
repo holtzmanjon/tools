@@ -61,7 +61,7 @@ def table(data, xtitle=None, ytitle=None, size=100, plots=True, formstr=':8.3f',
     return out
 
 
-def htmltab(plots, file=None, xtitle=None, ytitle=None, size='100%', header=None) :
+def htmltab(plots, file=None, xtitle=None, ytitle=None, size='100%', header=None, video=False) :
     """
     Given 2D list of plots, generates HTML that displays these in a table, with optional
     titling of rows and columns and top header
@@ -98,8 +98,15 @@ def htmltab(plots, file=None, xtitle=None, ytitle=None, size='100%', header=None
             f.write('<TD>'+ytitle[iy]+'\n')
         for ix in range(nx) :
             f.write('<TD>\n')
-            f.write('<A HREF="'+p[iy][ix]+'">'+
-                    '<IMG SRC="'+p[iy][ix]+'" WIDTH='+str(size)+'></A>\n')
+            if video :
+                f.write('<A HREF={:s}\n'.format(p[iy][ix]))
+                f.write('<video autoplay controls muted width={:s}\n'.format(size))
+                f.write('source src={:s} type="video/mp4"\n'.format(p[iy][ix]))
+                f.write('</video>\n')
+                f.write('</A>\n')
+            else :
+                f.write('<A HREF="'+p[iy][ix]+'">'+
+                        '<IMG SRC="'+p[iy][ix]+'" WIDTH='+str(size)+'></A>\n')
             f.write('</TD>\n')
     f.write('</TABLE>\n')
     tail(f)

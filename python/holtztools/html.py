@@ -99,9 +99,9 @@ def htmltab(plots, file=None, xtitle=None, ytitle=None, size='100%', header=None
         for ix in range(nx) :
             f.write('<TD>\n')
             if video :
-                f.write('<A HREF={:s}\n'.format(p[iy][ix]))
-                f.write('<video autoplay controls muted width={:s}\n'.format(size))
-                f.write('source src={:s} type="video/mp4"\n'.format(p[iy][ix]))
+                f.write('<A HREF={:s}>\n'.format(p[iy][ix]))
+                f.write('<video autoplay controls muted width={:s}>\n'.format(size))
+                f.write('<source src={:s} type="video/mp4">\n'.format(p[iy][ix]))
                 f.write('</video>\n')
                 f.write('</A>\n')
             else :

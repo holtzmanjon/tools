@@ -22,10 +22,10 @@ if __name__ == '__main__' :
     args = parser.parse_args()
 
     # download the current version of google sheet
-    addr='https://docs.google.com/spreadsheets/d/1rp8Re-6RqI1VD5FIy3DwsuLErf_r3nT3AvUmjm77KS4/export?format=tsv'
+    addr='https://docs.google.com/spreadsheets/d/10XUbViGVJvek49jQ7xD_HOcFLJYxPkCvgL2VAFeCvFE/export?format=tsv'
     tab=reminder.get(addr)
     reminder.newsend(tab,ndays=args.ndays,datecol=args.datecol,messagecols=args.messagecols,messagefmt=args.messagefmt,
-                     emailcol=args.emailcol,individual=True,subject=args.subject,header=args.header,broadcast=args.broadcast)
+                     emailcol=args.emailcol,individual=args.individual,subject=args.subject,header=args.header,broadcast=args.broadcast)
 
     #with tempfile.NamedTemporaryFile(mode='w+', delete=True) as temp_file:
     #    print(f"Temporary file created at: {temp_file.name}")

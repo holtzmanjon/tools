@@ -6,7 +6,114 @@ import pdb
 import copy
 import argparse
 import numpy as np
+import tempfile
 from argparse import RawTextHelpFormatter
+from astropy.table import Table
+
+def get(addr) :
+    """ Get Google sheet from input address and return as astropy Table
+    """
+    with tempfile.NamedTemporaryFile(mode='w+', delete=True) as temp_file:
+        print(f"Temporary file created at: {temp_file.name}")
+        fp=open(temp_file.name,'w')
+        output=subprocess.run(['curl','-L',addr],stdout=fp)
+        fp.seek(0)
+        tab=Table.read(temp_file.name,format='ascii.tab')
+
+    daynow=datetime.now().timetuple().tm_yday
+    for row in tab :
+        getymd(row,column='Start date')
+
+    return tab
+
+def getymd(row,column='Date') :
+    """ Get year, month, day from specfied column in input table row 
+        with format month day, year, e.g. Wednesday, August 26, 2026
+    """
+    months=['Jan','Feb','Mar','Apr','May','Jun',
+            'Jul','Aug','Sep','Oct','Nov','Dec']
+    date = row[column]
+    year = int(date.split(',')[-1])
+    for imonth,month in enumerate(months) :
+        if month in date : 
+            m = imonth+1
+            d=int(date.split(',')[-2].split(' ')[-1])
+    return year, m, d
+
+def newsend(tab,datecol='Start date',messagecols=['Start date','Presenter'],emailcol='Email',
+            messagefmt=['{:30s}','{:30s}'],
+            ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
+            header='astro-ph this week:',subject='astroph reminder',addr='http://testaddress') :
+    """ Go through tsvfile and send mail if day is within ndays from today
+        Currently hardwired to send columns 1, 2, and 4
+
+        tsvfile (str) : file to read date (1st column, format includes Month 
+                         and ends with day, e.g.  Thursday, May 10), plus
+                         other columns to include in reminder 
+        ndays (int) : send message if date is within ndays from today
+        broadcast (str) : if not None, send message to this address
+        individual (bool) : if True, send to address in column 3
+        header (str) : string to prepend before spreadsheet line(s)
+    """
+
+    print('ndays: ', ndays)
+    print('broadcast: ', broadcast)
+    print('individual: ', individual)
+
+    # setup for dates, get current day number
+    months=['Jan','Feb','Mar','Apr','May','Jun',
+            'Jul','Aug','Sep','Oct','Nov','Dec']
+    daynow=datetime.now().timetuple().tm_yday
+
+    # start to construct the email message
+    fout=open('message','w')
+    for h in header.split('\\n') :
+        fout.write(h+'\n')
+    fout.write(addr+'\n')
+
+    # read through the file, getting event dates
+    send = False
+    indiv = []
+    for irow,row in enumerate(tab) :
+        # get day number of event
+        year, m, d = getymd(row,column=datecol) 
+        date=datetime(year=year,month=m,day=int(d))
+        dayno=date.timetuple().tm_yday
+        #if dayno < daynow : continue
+  
+        # if event is within ndays from now, add event to message 
+        if (ndays > 0 and dayno-daynow>=0 and dayno-daynow < ndays) or (ndays<0 and dayno-daynow == ndays):
+            print(dayno,daynow,dayno-daynow,ndays)
+            if row[messagecols[0]] != '' :
+                send = True
+                for icol,col in enumerate(messagecols) :
+                    print(messagefmt[icol],row[col])
+                    fout.write(messagefmt[icol].format(row[col]))
+            fout.write(addr+'?row=A{:d}'.format(irow+2))
+            fout.write('\n')
+            if individual : 
+                indiv.append(row[emailcol])
+    fout.close()
+
+    # send message to requested recipients
+    if send :
+        if individual :
+            for addr in indiv :
+                if len(addr) == 0 : continue
+                j=np.char.find(addr,'@')
+                if j < 0 : addr+='@'+domain
+                fin = open('message')
+                subprocess.run(['mail','-s',subject,addr], stdin=fin)
+                fin.close()
+                print('mail sent to: ', addr)
+
+        if broadcast != None :
+            j=np.char.find(broadcast,'@')
+            if j < 0 : broadcast+='@'+domain
+            fin = open('message')
+            subprocess.run(['mail','-s',subject,broadcast], stdin=fin)
+            fin.close()
+            print('mail sent to: ', broadcast)
 
 def send(tsvfile,ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
              header='astro-ph this week:') :
@@ -92,3 +199,4 @@ def send(tsvfile,ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
                            stdin=fin)
             fin.close()
             print('mail sent to: ', broadcast)
+

@@ -8,6 +8,7 @@ import argparse
 import numpy as np
 import tempfile
 from argparse import RawTextHelpFormatter
+from . import mail
 from astropy.table import Table
 
 def get(addr) :
@@ -43,7 +44,7 @@ def getymd(row,column='Date') :
 def newsend(tab,datecol='Start date',messagecols=['Start date','Presenter'],emailcol='Email',
             messagefmt=['{:30s}','{:30s}'],
             ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
-            header='astro-ph this week:',subject='astroph reminder',addr='http://testaddress') :
+            header='astro-ph this week:',subject='astroph reminder',addr='') :
     """ Go through tsvfile and send mail if day is within ndays from today
         Currently hardwired to send columns 1, 2, and 4
 
@@ -54,11 +55,13 @@ def newsend(tab,datecol='Start date',messagecols=['Start date','Presenter'],emai
         broadcast (str) : if not None, send message to this address
         individual (bool) : if True, send to address in column 3
         header (str) : string to prepend before spreadsheet line(s)
+        addr (str) : link address for first column
     """
 
     print('ndays: ', ndays)
     print('broadcast: ', broadcast)
     print('individual: ', individual)
+    print('addr: ', addr)
 
     # setup for dates, get current day number
     months=['Jan','Feb','Mar','Apr','May','Jun',
@@ -69,7 +72,6 @@ def newsend(tab,datecol='Start date',messagecols=['Start date','Presenter'],emai
     fout=open('message','w')
     for h in header.split('\\n') :
         fout.write(h+'\n')
-    fout.write(addr+'\n')
 
     # read through the file, getting event dates
     send = False
@@ -83,36 +85,42 @@ def newsend(tab,datecol='Start date',messagecols=['Start date','Presenter'],emai
   
         # if event is within ndays from now, add event to message 
         if (ndays > 0 and dayno-daynow>=0 and dayno-daynow < ndays) or (ndays<0 and dayno-daynow == ndays):
-            print(dayno,daynow,dayno-daynow,ndays)
+            print(dayno,daynow,dayno-daynow,ndays,addr)
             if row[messagecols[0]] != '' :
                 send = True
                 for icol,col in enumerate(messagecols) :
-                    print(messagefmt[icol],row[col])
-                    fout.write(messagefmt[icol].format(row[col]))
-            fout.write(addr+'?row=A{:d}'.format(irow+2))
+                    if icol==0 and addr != '' :
+                        fout.write(('<A HREF={:s}&range=A{:d}>'+messagefmt[icol]+'</A>').format(addr,irow+2,row[col]))
+                    else :
+                        fout.write(messagefmt[icol].format(row[col]))
             fout.write('\n')
+
             if individual : 
-                indiv.append(row[emailcol])
+                indiv.extend(row[emailcol].split(','))
     fout.close()
 
     # send message to requested recipients
     if send :
         if individual :
-            for addr in indiv :
+            for i,addr in enumerate(indiv) :
                 if len(addr) == 0 : continue
                 j=np.char.find(addr,'@')
-                if j < 0 : addr+='@'+domain
-                fin = open('message')
-                subprocess.run(['mail','-s',subject,addr], stdin=fin)
-                fin.close()
-                print('mail sent to: ', addr)
+                if j < 0 : indiv[i]+='@'+domain
+            fin = open('message')
+            message=fin.read()
+            fin.close()
+            #subprocess.run(['mail','-s',subject,addr], stdin=fin)
+            mail.send(indiv,subject=subject,message=message,attachment=None,snapshot=False,html=True) 
+            print('mail sent to: ', indiv)
 
         if broadcast != None :
             j=np.char.find(broadcast,'@')
             if j < 0 : broadcast+='@'+domain
             fin = open('message')
-            subprocess.run(['mail','-s',subject,broadcast], stdin=fin)
+            message=fin.read()
             fin.close()
+            #subprocess.run(['mail','-s',subject,broadcast], stdin=fin)
+            mail.send([broadcast],subject=subject,message=message,attachment=None,snapshot=False,html=True) 
             print('mail sent to: ', broadcast)
 
 def send(tsvfile,ndays=7,broadcast=None,individual=False,domain='nmsu.edu',

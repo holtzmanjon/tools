@@ -6,6 +6,27 @@ email addresses, and a comment field in a TSV file.  This may be useful
 for group based reminders. The TSV file may be downloaded, e.g., from a 
 Google doc: this is how it is used for NMSU astroph reminders.
 
+Main driver is executable reminder ::
+
+  reminder [-h] [--ndays NDAYS] [--broadcast BROADCAST] [--header HEADER] [--subject SUBJECT] [--datecol DATECOL] [--emailcol EMAILCOL]
+                [--messagecols [MESSAGECOLS ...]] [--messagefmt [MESSAGEFMT ...]] [--addr ADDR] [--individual]
+
+    optional arguments:
+    -h, --help            show this help message and exit
+    --ndays NDAYS         Look for spreadsheet lines with date < ndays
+    --broadcast BROADCAST
+                          send email to this broadcast address
+    --header HEADER       text of email before spreadsheet lines
+    --subject SUBJECT     subject for email
+    --datecol DATECOL     spreadsheet column header for column with date
+    --emailcol EMAILCOL   spreadsheet column for emails to specific individuals
+    --messagecols [MESSAGECOLS ...]
+                          spreadsheet columns to include in email
+    --messagefmt [MESSAGEFMT ...]
+                          format for spreadsheet columns to include in email
+    --addr ADDR           Google sheet address
+    --individual          send email to the addresses in specified email column
+
 
 
 .. automodule:: holtztools.reminder

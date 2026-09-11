@@ -45,17 +45,18 @@ def newsend(tab,datecol='Start date',messagecols=['Start date','Presenter'],emai
             messagefmt=['{:30s}','{:30s}'],
             ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
             header='astro-ph this week:',subject='astroph reminder',addr='') :
-    """ Go through tsvfile and send mail if day is within ndays from today
-        Currently hardwired to send columns 1, 2, and 4
+    """ Go through input astropy table and send mail if day is within ndays from today
 
-        tsvfile (str) : file to read date (1st column, format includes Month 
-                         and ends with day, e.g.  Thursday, May 10), plus
-                         other columns to include in reminder 
+    Parameters :
+    ============
+        tab (str) : table 
+                     table to read columns fromo
         ndays (int) : send message if date is within ndays from today
         broadcast (str) : if not None, send message to this address
-        individual (bool) : if True, send to address in column 3
+        individual (bool) : if True, send to address in column emailcol
+        emailcol (str) : column name with email address(es)
         header (str) : string to prepend before spreadsheet line(s)
-        addr (str) : link address for first column
+        addr (str) : link address for first column text
     """
 
     print('ndays: ', ndays)

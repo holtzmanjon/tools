@@ -22,18 +22,15 @@ def get(addr) :
         tab=Table.read(temp_file.name,format='ascii.tab')
 
     daynow=datetime.now().timetuple().tm_yday
-    for row in tab :
-        getymd(row,column='Start date')
 
     return tab
 
-def getymd(row,column='Date') :
-    """ Get year, month, day from specfied column in input table row 
+def getymd(date) :
+    """ Get year, month, day from input string
         with format month day, year, e.g. Wednesday, August 26, 2026
     """
     months=['Jan','Feb','Mar','Apr','May','Jun',
             'Jul','Aug','Sep','Oct','Nov','Dec']
-    date = row[column]
     year = int(date.split(',')[-1])
     for imonth,month in enumerate(months) :
         if month in date : 
@@ -41,7 +38,7 @@ def getymd(row,column='Date') :
             d=int(date.split(',')[-2].split(' ')[-1])
     return year, m, d
 
-def newsend(tab,datecol='Start date',messagecols=['Start date','Presenter'],emailcol='Email',
+def send(tab,datecol='Start date',messagecols=['Start date','Presenter'],emailcol='Email',
             messagefmt=['{:30s}','{:30s}'],
             ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
             header='astro-ph this week:',subject='astroph reminder',addr='') :
@@ -77,9 +74,14 @@ def newsend(tab,datecol='Start date',messagecols=['Start date','Presenter'],emai
     # read through the file, getting event dates
     send = False
     indiv = []
+    fout.write('<TABLE>\n')
     for irow,row in enumerate(tab) :
         # get day number of event
-        year, m, d = getymd(row,column=datecol) 
+        try :
+            year, m, d = getymd(row[datecol]) 
+            lastyear,lastm,lastd = year,m,d
+        except :
+            year, m, d = lastyear,lastm,lastd
         date=datetime(year=year,month=m,day=int(d))
         dayno=date.timetuple().tm_yday
         #if dayno < daynow : continue
@@ -87,17 +89,17 @@ def newsend(tab,datecol='Start date',messagecols=['Start date','Presenter'],emai
         # if event is within ndays from now, add event to message 
         if (ndays > 0 and dayno-daynow>=0 and dayno-daynow < ndays) or (ndays<0 and dayno-daynow == ndays):
             print(dayno,daynow,dayno-daynow,ndays,addr)
-            if row[messagecols[0]] != '' :
-                send = True
-                for icol,col in enumerate(messagecols) :
-                    if icol==0 and addr != '' :
-                        fout.write(('<A HREF={:s}&range=A{:d}>'+messagefmt[icol]+'</A>').format(addr,irow+2,row[col]))
-                    else :
-                        fout.write(messagefmt[icol].format(row[col]))
+            send = True
+            for icol,col in enumerate(messagecols) :
+                if icol==0 and addr != '' :
+                    fout.write(('<TR><TD><A HREF={:s}&range=A{:d}>'+messagefmt[icol]+'</A>').format(addr,irow+2,row[col]))
+                else :
+                    fout.write(('<TD>'+messagefmt[icol]).format(row[col]))
             fout.write('\n')
 
             if individual : 
                 indiv.extend(row[emailcol].split(','))
+    fout.write('</TABLE>\n')
     fout.close()
 
     # send message to requested recipients
@@ -110,7 +112,6 @@ def newsend(tab,datecol='Start date',messagecols=['Start date','Presenter'],emai
             fin = open('message')
             message=fin.read()
             fin.close()
-            #subprocess.run(['mail','-s',subject,addr], stdin=fin)
             mail.send(indiv,subject=subject,message=message,attachment=None,snapshot=False,html=True) 
             print('mail sent to: ', indiv)
 
@@ -120,11 +121,10 @@ def newsend(tab,datecol='Start date',messagecols=['Start date','Presenter'],emai
             fin = open('message')
             message=fin.read()
             fin.close()
-            #subprocess.run(['mail','-s',subject,broadcast], stdin=fin)
             mail.send([broadcast],subject=subject,message=message,attachment=None,snapshot=False,html=True) 
             print('mail sent to: ', broadcast)
 
-def send(tsvfile,ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
+def oldsend(tsvfile,ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
              header='astro-ph this week:') :
     """ Go through tsvfile and send mail if day is within ndays from today
         Currently hardwired to send columns 1, 2, and 4
@@ -158,17 +158,24 @@ def send(tsvfile,ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
     fp=open(tsvfile)
     # get year from 1st column of 2nd line
     line=fp.readline()
-    line=fp.readline()
-    year=int(line.split('\t')[0])
+    #line=fp.readline()
+    #year=int(line.split('\t')[0])
     send = False
     indiv = []
     for line in fp:
+
         date=line.split('\t')[0]
-        for imonth,month in enumerate(months) :
-            if month in date : 
-                m = imonth+1
-                d=date.split(' ')[-1]
-        if m < 1 : continue
+        print('date: ', date)
+        try :
+            year, m, d = getymd(date)
+            lastyear,lastm,lastd = year,m,d
+        except :
+            year, m, d = lastyear,lastm,lastd
+        #for imonth,month in enumerate(months) :
+        #    if month in date : 
+        #        m = imonth+1
+        #        d=date.split(' ')[-1]
+        #if m < 1 : continue
 
         # get day number of event
         date=datetime(year=year,month=m,day=int(d))

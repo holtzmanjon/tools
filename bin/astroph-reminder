@@ -19,5 +19,5 @@ if __name__ == '__main__' :
     output=subprocess.run(['curl','-L',addr],stdout=fp)
     fp.close()
 
-    reminder.send('astroph',args.ndays,header=args.header,
+    reminder.oldsend('astroph',args.ndays,header=args.header,
              broadcast=args.broadcast,individual=args.individual)

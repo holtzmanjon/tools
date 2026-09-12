@@ -38,7 +38,7 @@ def getymd(date) :
             d=int(date.split(',')[-2].split(' ')[-1])
     return year, m, d
 
-def newsend(tab,datecol='Start date',messagecols=['Start date','Presenter'],emailcol='Email',
+def send(tab,datecol='Start date',messagecols=['Start date','Presenter'],emailcol='Email',
             messagefmt=['{:30s}','{:30s}'],
             ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
             header='astro-ph this week:',subject='astroph reminder',addr='') :
@@ -124,7 +124,7 @@ def newsend(tab,datecol='Start date',messagecols=['Start date','Presenter'],emai
             mail.send([broadcast],subject=subject,message=message,attachment=None,snapshot=False,html=True) 
             print('mail sent to: ', broadcast)
 
-def send(tsvfile,ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
+def oldsend(tsvfile,ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
              header='astro-ph this week:') :
     """ Go through tsvfile and send mail if day is within ndays from today
         Currently hardwired to send columns 1, 2, and 4

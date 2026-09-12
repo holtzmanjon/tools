@@ -25,17 +25,6 @@ if __name__ == '__main__' :
     # download the current version of google sheet
     tab=reminder.get(args.addr+'/export?format=tsv')
     addr=args.addr+'/edit?gid=141225421#gid=141225421'
-    reminder.newsend(tab,ndays=args.ndays,datecol=args.datecol,messagecols=args.messagecols,messagefmt=args.messagefmt,
+    reminder.send(tab,ndays=args.ndays,datecol=args.datecol,messagecols=args.messagecols,messagefmt=args.messagefmt,
                      emailcol=args.emailcol,individual=args.individual,subject=args.subject,header=args.header,broadcast=args.broadcast,
                      addr=addr)
-
-    #with tempfile.NamedTemporaryFile(mode='w+', delete=True) as temp_file:
-    #    print(f"Temporary file created at: {temp_file.name}")
-    #    fp=open(temp_file.name,'w')
-    #    output=subprocess.run(['curl','-L',addr],stdout=fp)
-    #    fp.seek(0)
-    #    tab=Table.read(temp_file.name,format='ascii.tab')
-#        print(tab)
-#
-    #reminder.send('astroph',args.ndays,header=args.header,
-    #         broadcast=args.broadcast,individual=args.individual)

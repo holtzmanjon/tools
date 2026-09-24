@@ -98,7 +98,8 @@ def send(tab,datecol='Start date',messagecols=['Start date','Presenter'],emailco
             fout.write('\n')
 
             if individual : 
-                indiv.extend(row[emailcol].split(','))
+                try : indiv.extend(row[emailcol].split(','))
+                except : pass
     fout.write('</TABLE>\n')
     fout.close()
 

@@ -11,17 +11,28 @@ from argparse import RawTextHelpFormatter
 from . import mail
 from astropy.table import Table
 
-def get(addr) :
+def get(addr,datecol=None) :
     """ Get Google sheet from input address and return as astropy Table
     """
     with tempfile.NamedTemporaryFile(mode='w+', delete=True) as temp_file:
-        print(f"Temporary file created at: {temp_file.name}")
         fp=open(temp_file.name,'w')
-        output=subprocess.run(['curl','-L',addr],stdout=fp)
+        output=subprocess.run(['curl','-L',addr],stdout=fp,stderr=subprocess.DEVNULL)
         fp.seek(0)
         tab=Table.read(temp_file.name,format='ascii.tab')
 
-    daynow=datetime.now().timetuple().tm_yday
+    if datecol is not None :
+        tab['dayno'] = -1
+        lastyear,lastm,lastd = 0,0,0
+        for irow,row in enumerate(tab) :
+            # get day number of event
+            try :
+                year, m, d = getymd(row[datecol]) 
+                lastyear,lastm,lastd = year,m,d
+            except :
+                year, m, d = lastyear,lastm,lastd
+            date=datetime(year=year,month=m,day=int(d))
+            dayno=date.timetuple().tm_yday
+            tab[irow]['dayno'] = dayno
 
     return tab
 

@@ -16,7 +16,7 @@ def get(addr,datecol=None) :
     """
     with tempfile.NamedTemporaryFile(mode='w+', delete=True) as temp_file:
         fp=open(temp_file.name,'w')
-        output=subprocess.run(['curl','-L',addr],stdout=fp,stderr=subprocess.DEVNULL)
+        output=subprocess.run(['curl','-L',addr+'/export?format=tsv'],stdout=fp,stderr=subprocess.DEVNULL)
         fp.seek(0)
         tab=Table.read(temp_file.name,format='ascii.tab')
 
@@ -128,13 +128,18 @@ def send(tab,datecol='Start date',messagecols=['Start date','Presenter'],emailco
             print('mail sent to: ', indiv)
 
         if broadcast != None :
-            j=np.char.find(broadcast,'@')
-            if j < 0 : broadcast+='@'+domain
+            recip=[]
+            recip.extend(broadcast.split(','))
+
+            for i,addr in enumerate(recip) :
+                if len(addr) == 0 : continue
+                j=np.char.find(addr,'@')
+                if j < 0 : recip[i]+='@'+domain
             fin = open('message')
             message=fin.read()
             fin.close()
-            mail.send([broadcast],subject=subject,message=message,attachment=None,snapshot=False,html=True) 
-            print('mail sent to: ', broadcast)
+            mail.send(recip,subject=subject,message=message,attachment=None,snapshot=False,html=True) 
+            print('mail sent to: ', recip)
 
 def oldsend(tsvfile,ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
              header='astro-ph this week:') :

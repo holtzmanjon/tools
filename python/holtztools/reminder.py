@@ -52,7 +52,7 @@ def getymd(date) :
 def send(tab,datecol='Start date',messagecols=['Start date','Presenter'],emailcol='Email',
             messagefmt=['{:30s}','{:30s}'],
             ndays=7,broadcast=None,individual=False,domain='nmsu.edu',
-            header='astro-ph this week:',subject='astroph reminder',addr='') :
+            header='astro-ph this week:',headerfile=None,subject='astroph reminder',addr='') :
     """ Go through input astropy table and send mail if day is within ndays from today
 
     Parameters :
@@ -81,6 +81,10 @@ def send(tab,datecol='Start date',messagecols=['Start date','Presenter'],emailco
     fout=open('message','w')
     for h in header.split('\\n') :
         fout.write(h+'\n')
+    if headerfile is not None :
+        fin=open(headerfile)
+        fout.write(fin.read())
+        fin.close()
 
     # read through the file, getting event dates
     send = False

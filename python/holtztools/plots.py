@@ -554,12 +554,12 @@ def bokeh_plotp(ax,x,y,err=None,yerr=None,xr=None,yr=None,zr=None,size=5,color='
     Plot points in bokeh plot
     """
 
-    source= ColumnDataSource({'x':x,'y':y})
+    source= ColumnDataSource({'x':np.asarray(x,dtype=x.dtype), 'y':np.asarray(y,dtype=y.dtype)})
     if label is not None :
-        if marker == 'o' : ax.circle('x','y',source=source,fill_color=color,size=size,legend_label=label,line_color=edgecolor)
+        if marker == 'o' : ax.scatter('x','y',source=source,fill_color=color,size=size,legend_label=label,line_color=edgecolor)
         elif marker == 's' : ax.square('x','y',source=source,fill_color=color,size=size,legend_label=label)
     else :
-        if marker == 'o' : ax.circle('x','y',source=source,fill_color=color,size=size,line_color=None)
+        if marker == 'o' : ax.scatter('x','y',source=source,fill_color=color,size=size,line_color=None)
         elif marker == 's' : ax.square('x','y',source=source,fill_color=color,size=size)
     if xt is not None :
         ax.xaxis.axis_label = xt
@@ -580,7 +580,7 @@ def bokeh_plotl(ax,x,y,err=None,yerr=None,xr=None,yr=None,zr=None,size=5,color='
     Plot lines in bokeh plot
     """
 
-    source= ColumnDataSource({'x':x,'y':y})
+    source= ColumnDataSource({'x':np.asarray(x,dtype=x.dtype), 'y':np.asarray(y,dtype=y.dtype)})
     if label is not None :
         ax.line('x','y',source=source,legend_label=label,line_color=color)
     else :
@@ -604,16 +604,25 @@ def bokeh_plotc(ax,x,y,z,xerr=None,yerr=None,xr=None,yr=None,zr=None,size=5,cmap
     """
 
     if sliderdata is None :
-        source=ColumnDataSource({'x':x,'y':y,'z':z})
+        source=ColumnDataSource({'x':np.asarray(x,dtype=x.dtype),
+                                 'y':np.asarray(y,dtype=y.dtype),
+                                 'z':np.asarray(z,dtype=z.dtype)})
     else :
-        source=ColumnDataSource({'x':x,'y':y,'z':z, 'range' : sliderdata})
-        source2=ColumnDataSource({'x':x,'y':y,'z':z, 'range' : sliderdata})
+        source=ColumnDataSource({'x':np.asarray(x,dtype=x.dtype),
+                                 'y':np.asarray(y,dtype=y.dtype),
+                                 'z':np.asarray(z,dtype=z.dtype), 
+                                 'range' : np.asarray(sliderdata,dtype=sliderdata.dtype)})
+        source2=ColumnDataSource({'x':np.asarray(x,dtype=x.dtype),
+                                  'y':np.asarray(y,dtype=y.dtype),
+                                  'z':np.asarray(z,dtype=z.dtype), 
+                                  'range' : np.asarray(sliderdata,dtype=sliderdata.dtype)})
     if zr is None : zr=[z.min(),z.max()]
     exp_cmap=LinearColorMapper(palette=cmap,low=zr[0],high=zr[1])
     if label is not None :
-        ax.circle('x','y',source=source,fill_color={'field' : 'z', 'transform' : exp_cmap},size=size,legend_label=label,line_color=edgecolor)
+        ax.scatter('x','y',source=source,fill_color={'field' : 'z', 'transform' : exp_cmap},size=size,legend_label=label,line_color=edgecolor)
+        ax.legend.location='bottom_left'
     else :
-        ax.circle('x','y',source=source,fill_color={'field' : 'z', 'transform' : exp_cmap},size=size,line_color=edgecolor)
+        ax.scatter('x','y',source=source,fill_color={'field' : 'z', 'transform' : exp_cmap},size=size,line_color=edgecolor)
     if xt is not None :
         ax.xaxis.axis_label = xt
     if yt is not None :
